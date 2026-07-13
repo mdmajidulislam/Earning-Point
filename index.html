@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Earn Engine v4.0</title>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+        body { background: #070a12; color: #f1f5f9; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        
+        .phone-wrapper { 
+            width: 100%; 
+            max-width: 450px; 
+            background: #0f1422; 
+            height: 94vh; 
+            max-height: 850px;
+            min-height: 680px;
+            border-radius: 28px; 
+            border: 2px solid #1e293b; 
+            box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7); 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+        }
+        
+        .screen-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 95px;
+            scroll-behavior: smooth;
+        }
+        .screen-scroll-container::-webkit-scrollbar { width: 4px; }
+        .screen-scroll-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .screen-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .screen-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        h2 { font-size: 22px; font-weight: 800; margin-bottom: 20px; text-align: center; color: #38bdf8; letter-spacing: -0.5px; word-wrap: break-word; }
+        h3 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 12px; word-wrap: break-word; }
+        p, span, div, td { word-wrap: break-word; overflow-wrap: break-word; }
+
+        input, select, textarea { width: 100%; padding: 12px 14px; background: #080c16; border: 2px solid #1e293b; border-radius: 12px; color: white; margin-bottom: 12px; font-size: 14px; transition: all 0.25s ease; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #38bdf8; background: #0c1222; }
+        
+        .btn { width: 100%; padding: 12px 16px; color: white; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { background: #1e293b !important; color: #64748b; cursor: not-allowed; box-shadow: none !important; }
+        .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-danger { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+        .btn-warning { background: linear-gradient(135deg, #d97706, #b45309); }
+        .btn-secondary { background: #1e293b; border: 1px solid #334155; }
+
+        .top-action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #080c16; padding: 8px 12px; border-radius: 10px; border: 1px solid #1e293b; }
+        .lang-switch-btn { background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 10px; font-size: 11px; font-weight: 800; border-radius: 6px; cursor: pointer; }
+        
+        .bell-icon-btn { position: relative; background: none; border: none; color: #f1f5f9; font-size: 22px; cursor: pointer; display: flex; align-items: center; }
+        .bell-badge { position: absolute; top: -2px; right: -2px; background: #ef4444; width: 8px; height: 8px; border-radius: 50%; display: none; }
+
+        .balance-card { background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 22px; border-radius: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(37,99,235,0.3); }
+        .balance-card h1 { font-size: 34px; font-weight: 800; color: #fff; margin: 4px 0; letter-spacing: -1px; }
+        
+        .ad-status-card { background: #080c16; border: 2px dashed #38bdf8; padding: 16px; border-radius: 16px; text-align: center; margin-bottom: 20px; display: none; }
+        .ad-status-card.active { display: block; }
+        .progress-bar-container { background: #1e293b; width: 100%; height: 6px; border-radius: 3px; margin: 12px 0; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: #38bdf8; width: 0%; transition: width 0.2s linear; }
+
+        .smart-ad-container { width: 100%; margin: 12px auto; text-align: center; max-width: 100%; overflow: hidden; }
+        .smart-ad-label { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 700; }
+        .adsterra-smart-banner { display: flex; justify-content: center; align-items: center; width: 100%; background: #080c16; border-radius: 10px; border: 1px solid #1e293b; overflow: hidden; min-height: 55px; }
+        
+        .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        .method-item { background: #080c16; border: 2px solid #1e293b; padding: 10px 4px; border-radius: 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .method-item.selected { border-color: #38bdf8; background: rgba(56, 189, 248, 0.08); }
+        .method-logo { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; color: #fff; }
+        .logo-bkash { background: #d12053; }
+        .logo-nagad { background: #f26822; }
+        .logo-usdt { background: #26a17b; }
+        
+        .notification-item { background: #080c16; border: 1px solid #1e293b; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+        .notification-unread { border-color: #38bdf8; background: rgba(56, 189, 248, 0.03); }
+        .notification-timer { font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 4px; display: block; }
+        
+        .community-card { display: flex; align-items: center; justify-content: space-between; background: #0c1222; border: 1px solid #1e293b; padding: 12px 16px; border-radius: 14px; margin-bottom: 10px; transition: transform 0.2s; }
+        
+        .history-container { margin-top: 15px; background: #080c16; border: 1px solid #1e293b; border-radius: 16px; padding: 14px; }
+        .history-title { font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .history-list-wrapper { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { padding: 10px 8px; font-size: 12px; text-align: left; border-bottom: 1px solid #1e293b; vertical-align: middle; }
+        th { color: #38bdf8; background: #0f1422; font-weight: 700; }
+        
+        .badge-status { padding: 3px 6px; border-radius: 5px; font-size: 9px; font-weight: 800; text-transform: uppercase; display: inline-block; }
+        .status-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .status-approved { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .status-declined { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 72px; background: #080c16; border-top: 2px solid #1e293b; display: none; grid-template-columns: repeat(4, 1fr); align-items: center; justify-items: center; z-index: 1000; }
+        .bottom-nav.visible { display: grid; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #475569; cursor: pointer; width: 100%; height: 100%; transition: all 0.2s; }
+        .nav-item i { font-size: 22px; margin-bottom: 2px; }
+        .nav-item span { font-size: 10px; font-weight: 700; }
+        .nav-item.active { color: #38bdf8; }
+        
+        .info-row { display: flex; justify-content: space-between; background: #080c16; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid #1e293b; }
+        
+        .app-toast-container { position: absolute; top: 15px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #0f1422; border: 2px solid #38bdf8; padding: 12px 18px; border-radius: 14px; width: 88%; z-index: 10000; box-shadow: 0 20px 30px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 10px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; pointer-events: none; }
+        .app-toast-container.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        
+        .stat-grid { display: flex; gap: 8px; margin-bottom: 12px; }
+        .stat-card { background: #080c16; padding: 10px; border-radius: 12px; flex: 1; border: 1px solid #1e293b; text-align: center; }
+
+        .admin-action-btn { padding: 5px 8px; font-size: 11px; border-radius: 6px; border: none; cursor: pointer; font-weight: 800; margin-top: 4px; display: inline-flex; align-items: center; }
+        .admin-approve { background: #10b981; color: white; margin-right: 4px; }
+        .admin-reject { background: #f43f5e; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-wrapper">
+        
+        <div id="app-custom-toast" class="app-toast-container">
+            <i class='bx bx-layer-plus' style="font-size: 22px; color: #38bdf8;"></i>
+            <span id="toast-msg-node" style="font-size: 13px; font-weight: 600;">System Ready</span>
+        </div>
+
+        <div class="screen-scroll-container">
+
+            <!-- 1. REGISTRATION MODULE -->
+            <div id="screen-register" class="screen-content active">
+                <div class="top-action-bar">
+                    <span style="font-size:12px; font-weight:700; color:#64748b;">System Platform</span>
+                    <button class="lang-switch-btn" onclick="toggleLanguage()">EN / বাং</button>
+                </div>
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+                <h2 data-en="Create Account" data-bn="নতুন অ্যাকাউন্ট তৈরি করুন">Create Account</h2>
+                <form id="regForm">
+                    <input type="text" id="reg-name" placeholder="Username" required>
+                    <input type="email" id="reg-email" placeholder="Email Address" required>
+                    <input type="password" id="reg-pass" placeholder="Password" required>
+                    <input type="text" id="reg-refer" placeholder="Refer Code (Optional)">
+                    <button type="submit" class="btn btn-success"><i class='bx bx-user-plus'></i> <span data-en="Register Now" data-bn="নিবন্ধন করুন">Register Now</span></button>
+                </form>
+                <p style="text-align:center; margin-top:15px; font-size: 13px;"><span data-en="Member already?" data-bn="আগে থেকেই অ্যাকাউন্ট আছে?">Member already?</span> <span style="color:#38bdf8; cursor:pointer; font-weight:700;" onclick="switchScreen('screen-login')" data-en="Login" data-bn="লগইন করুন">Login</span></p>
+            </div>
+
+            <!-- 2. LOGIN MODULE -->
+            <div id="screen-login" class="screen-content">
+                <div class="top-action-bar">
+                    <span style="font-size:12px; font-weight:700; color:#64748b;">Secure Authentication</span>
+                    <button class="lang-switch-btn" onclick="toggleLanguage()">EN / বাং</button>
+                </div>
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+                <h2 data-en="Welcome Back" data-bn="স্বাগতম">Welcome Back</h2>
+                <form id="logForm">
+                    <input type="email" id="log-email" placeholder="Email Address" required>
+                    <input type="password" id="log-pass" placeholder="Password" required>
+                    <button type="submit" class="btn btn-primary"><i class='bx bx-log-in'></i> <span data-en="Login Account" data-bn="লগইন করুন">Login Account</span></button>
+                </form>
+                <p style="text-align:center; margin-top:15px; font-size: 13px;"><span data-en="New member?" data-bn="নতুন মেম্বার?">New member?</span> <span style="color:#38bdf8; cursor:pointer; font-weight:700;" onclick="switchScreen('screen-register')" data-en="Sign Up" data-bn="নিবন্ধন করুন">Sign Up</span></p>
+                <p style="text-align: center; margin-top: 30px;"><span style="color: #475569; font-size: 11px; cursor:pointer; letter-spacing:1px;" onclick="switchScreen('screen-admin-login')"><i class='bx bx-shield-quarter'></i> ADMIN GATEWAY</span></p>
+            </div>
+
+            <!-- 3. ADMIN ACCESS GATE -->
+            <div id="screen-admin-login" class="screen-content">
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+                <h2>Admin Control</h2>
+                <form id="admLogForm">
+                    <input type="text" id="adm-user" placeholder="Admin Username" required>
+                    <input type="password" id="adm-pass" placeholder="Secret Access Key" required>
+                    <button type="submit" class="btn btn-danger"><i class='bx bx-key'></i> Authorize Admin</button>
+                </form>
+                <p style="text-align:center; margin-top:15px;"><span style="color:#64748b; cursor:pointer; font-size:13px;" onclick="switchScreen('screen-login')">User Login Dashboard</span></p>
+            </div>
+
+            <!-- 4. CORE TASK OPERATIONS ENGINE -->
+            <div id="screen-earn" class="screen-content">
+                <div class="top-action-bar">
+                    <span style="font-size:12px; font-weight:700; color:#64748b;" data-en="Workstation" data-bn="কাজের ড্যাশবোর্ড">Workstation</span>
+                    <button class="bell-icon-btn" onclick="switchScreen('screen-notifications')">
+                        <i class='bx bxs-bell'></i>
+                        <div class="bell-badge" id="app-bell-badge"></div>
+                    </button>
+                </div>
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+
+                <div class="balance-card">
+                    <p style="color: rgba(255,255,255,0.85); font-size: 12px; font-weight:600;" data-en="Total Accumulation" data-bn="আপনার মোট ব্যালেন্স">Total Accumulation</p>
+                    <h1 class="user-pts-display">0 Pts</h1>
+                </div>
+
+                <div id="ad-timer-card" class="ad-status-card">
+                    <h3 id="timer-header-lbl" style="color: #38bdf8;">Process Initialized</h3>
+                    <div class="progress-bar-container"><div class="progress-bar-fill" id="ad-pbar-fill"></div></div>
+                    <p style="font-size: 11px; color: #64748b;" id="timer-desc-lbl">Maintain target window focus integrity.</p>
+                    <button id="claim-ad-btn" onclick="verifyAndClaimPoints()" class="btn btn-success" style="margin-top: 10px; display: none;">Claim Points</button>
+                </div>
+
+                <button id="daily-btn" onclick="triggerDailyReward()" class="btn btn-warning" style="margin-bottom: 12px;">
+                    <i class='bx bx-calendar-check'></i> <span data-en="Daily Check-in (+3 Pts)" data-bn="ডেইলি বোনাস ক্লেইম (+৩ পয়েন্ট)">Daily Check-in (+3 Pts)</span>
+                </button>
+
+                <button id="watch-ad-main-btn" onclick="triggerDirectLinkAd()" class="btn btn-primary" style="padding: 15px; font-size: 15px; margin: 8px 0;">
+                    <i class='bx bx-play-circle' style="font-size: 19px;"></i> <span data-en="Load Video Stream (+4.5 Pts)" data-bn="ভিডিও অ্যাড দেখুন (+৪.৫ পয়েন্ট)">Load Video Stream (+4.5 Pts)</span>
+                </button>
+
+                <div style="margin-top: 20px;">
+                    <h3>Official Channels Hub</h3>
+                    <a href="https://t.me/earningpointhelp" target="_blank" style="text-decoration: none; color: inherit;">
+                        <div class="community-card">
+                            <div class="community-info" style="display:flex; align-items:center; gap:12px;">
+                                <div class="community-icon" style="width:38px; height:38px; background:#24a1de; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; color:white;"><i class='bx bx-support'></i></div>
+                                <div><strong style="font-size:14px;">Telegram Help Group</strong><br><small style="color:#64748b;" data-en="Get fast answers & support" data-bn="যেকোনো সমস্যার দ্রুত সমাধান পান">Get fast answers & support</small></div>
+                            </div>
+                            <i class='bx bx-chevron-right' style="font-size: 20px; color:#475569;"></i>
+                        </div>
+                    </a>
+                    <a href="https://t.me/EarningPointOfficialAnnouncement" target="_blank" style="text-decoration: none; color: inherit;">
+                        <div class="community-card">
+                            <div class="community-info" style="display:flex; align-items:center; gap:12px;">
+                                <div class="community-icon" style="width:38px; height:38px; background:#229ed9; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; color:white;"><i class='bx bx-broadcast'></i></div>
+                                <div><strong style="font-size:14px;">Official Announcement Channel</strong><br><small style="color:#64748b;" data-en="Stay updated with new notices" data-bn="নতুন সব আপডেট সবার আগে পান">Stay updated with new notices</small></div>
+                            </div>
+                            <i class='bx bx-chevron-right' style="font-size: 20px; color:#475569;"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 5. NOTIFICATION SCREEN -->
+            <div id="screen-notifications" class="screen-content">
+                <div class="top-action-bar">
+                    <button class="btn btn-secondary" onclick="switchScreen('screen-earn')" style="width:auto; padding:6px 12px; font-size:12px;"><i class='bx bx-left-arrow-alt'></i> Back</button>
+                    <span style="font-size:13px; font-weight:700; color:#38bdf8;">Notifications Center</span>
+                </div>
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+                <h2 data-en="Inbox Notifications" data-bn="নোটিফিকেশন ইনবক্স">Inbox Notifications</h2>
+                <div id="user-notifications-list-container" style="min-height: 200px;"></div>
+            </div>
+
+            <!-- 6. REFER ARCHITECTURE -->
+            <div id="screen-refer" class="screen-content">
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+                <h2 data-en="Affiliate Node Linkages" data-bn="রেফারেল নেটওয়ার্ক">Affiliate Node Linkages</h2>
+                <div style="background:#080c16; border: 2px dashed #38bdf8; padding: 14px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: 800; color: #38bdf8; margin-bottom: 15px; cursor:pointer;" id="user-refer-code-lbl" onclick="copyReferCode()">...</div>
+                
+                <div class="stat-grid">
+                    <div class="stat-card"><small style="color:#64748b;" data-en="Total Nodes" data-bn="মোট রেফার">Total Nodes</small><p id="user-ref-count" style="font-size: 18px; font-weight: 800; color: #38bdf8;">0</p></div>
+                    <div class="stat-card"><small style="color:#64748b;" data-en="Dividend Yield" data-bn="রেফার ইনকাম">Dividend Yield</small><p id="user-ref-earning" style="font-size: 18px; font-weight: 800; color: #10b981;">0 Pts</p></div>
+                </div>
+
+                <div class="history-container">
+                    <div class="history-title"><i class='bx bx-git-branch'></i> <span data-en="Linked Network Mapping" data-bn="রেফার করা মেম্বারদের তালিকা">Linked Network Mapping</span></div>
+                    <div id="user-ref-list-rows" class="history-list-wrapper" style="font-size: 12px;"></div>
+                </div>
+            </div>
+
+            <!-- 7. CASHOUT TERMINAL -->
+            <div id="screen-withdraw" class="screen-content">
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+                <h2 data-en="Financial Liquidation" data-bn="পেমেন্ট উইথড্রয়াল">Financial Liquidation</h2>
+                <div class="balance-card" style="background: #080c16; border: 1px solid #1e293b;">
+                    <small style="color: #64748b;" data-en="Liquid Reserve Available" data-bn="উত্তোলনযোগ্য ব্যালেন্স">Liquid Reserve Available</small>
+                    <h2 class="user-pts-display" style="color:#38bdf8; margin: 4px 0;">0 Pts</h2>
+                    <small style="color:#10b981; font-weight:700;">Range: 5000 - 50000 Pts</small>
+                </div>
+
+                <div class="method-grid">
+                    <div class="method-item selected" onclick="selectMethod(this, 'bKash')"><div class="method-logo logo-bkash">bK</div><span>bKash</span></div>
+                    <div class="method-item" onclick="selectMethod(this, 'Nagad')"><div class="method-logo logo-nagad">Ng</div><span>Nagad</span></div>
+                    <div class="method-item" onclick="selectMethod(this, 'USDT')"><div class="method-logo logo-usdt"><i class='bx bx-coin-stack'></i></div><span>USDT</span></div>
+                </div>
+
+                <form id="cashForm">
+                    <input type="number" id="withdraw-points-amount" placeholder="Points (e.g. 5000, 7500, 20000)" min="5000" max="50000" oninput="livePayoutConversionRatioCalc()" required>
+                    
+                    <div id="live-ratio-calculator-badge" style="background:#080c16; border:1px solid #334155; padding:10px; border-radius:10px; font-size:12px; margin-bottom:12px; display:none; justify-content:space-between; font-weight:600;">
+                        <span style="color:#64748b;">Conversion Ratio:</span>
+                        <span style="color:#10b981;" id="live-ratio-string-node">5000 Pts = 20৳</span>
+                    </div>
+
+                    <input type="text" id="withdraw-address" placeholder="Payout Channel Address / Target Phone ID" required>
+                    <button type="submit" class="btn btn-primary" data-en="Submit Settlement Order" data-bn="উইথড্র রিকোয়েস্ট পাঠান">Submit Settlement Order</button>
+                </form>
+
+                <div class="history-container">
+                    <div class="history-title"><i class='bx bx-receipt'></i> <span data-en="Historical Ledger Statements" data-bn="পেমেন্ট স্টেটমেন্ট হিস্ট্রি">Historical Ledger Statements</span></div>
+                    <div id="user-payment-history-rows" class="history-list-wrapper"></div>
+                </div>
+            </div>
+
+            <!-- 8. ACCOUNT METRIC PROFILE -->
+            <div id="screen-profile" class="screen-content">
+                <div class="smart-ad-container">
+                    <div class="adsterra-smart-banner">
+                        <iframe src="about:blank" style="width:320px; height:50px; border:none; scrolling:no;" data-ad-key="3a8ab06973476a248cb742907ac0dc26"></iframe>
+                    </div>
+                </div>
+                <h2 data-en="Security Node Profile" data-bn="ইউজার প্রোফাইল ম্যাট্রিক্স">Security Node Profile</h2>
+                <div style="text-align:center; margin-bottom: 20px;">
+                    <h3 id="prof-user-lbl" style="font-size: 18px; color: #38bdf8;">User Ledger</h3>
+                    <p id="prof-email-lbl" style="color: #64748b; font-size:12px;">Active Address Map</p>
+                    <p style="color: #e2e8f0; font-size: 12px; margin-top: 6px; font-weight:600;"><i class='bx bx-calendar-alt' style="color:#a855f7;"></i> <span data-en="Joined on:" data-bn="যোগদানের তারিখ:">Joined on:</span> <span id="prof-join-date-lbl" style="color: #a855f7; font-weight:800;">-</span></p>
+                </div>
+                <div class="info-row"><span data-en="Current Points Account" data-bn="বর্তমান পয়েন্ট ব্যালেন্স">Current Points Account</span><span class="user-pts-display" style="color:#10b981; font-weight:700;">0 Pts</span></div>
+                <div class="info-row"><span data-en="Aggregated Ads Logged" data-bn="মোট দেখা বিজ্ঞাপনের সংখ্যা">Aggregated Ads Logged</span><span id="prof-ads-lbl" style="color:#38bdf8; font-weight:700;">0</span></div>
+                <button onclick="logout()" class="btn btn-danger" style="margin-top: 20px;"><i class='bx bx-power-off'></i> <span data-en="Terminate Session" data-bn="লগ আউট করুন">Terminate Session</span></button>
+            </div>
+
+            <!-- 9. ADVANCED ADMIN DASHBOARD -->
+            <div id="screen-admin-dashboard" class="screen-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; width:100%;">
+                    <h3 style="color:#f43f5e; margin:0;"><i class='bx bx-shield-quarter'></i> Matrix Core Engine</h3>
+                    <button onclick="logout()" class="btn btn-secondary" style="width:auto; padding:6px 12px; font-size:11px;">Lock Console</button>
+                </div>
+                
+                <div class="stat-grid">
+                    <div class="stat-card"><small>Global Vol Clicks</small><p id="admin-clicks-lbl" style="font-size:16px; font-weight:800; color:#38bdf8;">0</p></div>
+                    <div class="stat-card"><small>Registered Nodes</small><p id="admin-users-lbl" style="font-size:16px; font-weight:800; color:#10b981;">0</p></div>
+                </div>
+
+                <div class="history-container" style="border-color: #3b82f6; margin-bottom: 12px; background: #0c1222;">
+                    <div class="history-title" style="color:#3b82f6;"><i class='bx bx-broadcast'></i> Communications Messaging Console</div>
+                    <select id="admin-msg-target-type" onchange="toggleAdminMsgTargetUI()">
+                        <option value="all">Broadcast Notification to All Users</option>
+                        <option value="single">Target Specific Individual User</option>
+                    </select>
+                    <input type="text" id="admin-msg-target-user" placeholder="Target Username (Case sensitive)" style="display:none; padding:8px; font-size:12px;">
+                    <textarea id="admin-custom-msg-body" placeholder="Write message/alert body text here..." rows="2" style="padding:8px; font-size:12px; margin-bottom:8px;"></textarea>
+                    <button class="btn btn-primary" onclick="dispatchAdminNotification()" style="padding:8px; font-size:12px;"><i class='bx bx-send'></i> Transmit Notification Alert</button>
+                </div>
+
+                <div class="history-container" style="background: #090e1a; margin-bottom: 15px; border-color: #f43f5e;">
+                    <div class="history-title" style="color: #f43f5e;"><i class='bx bx-check-shield'></i> Active Payout Action Pipeline</div>
+                    
+                    <div id="admin-trx-input-panel" style="display:none; background:#080c16; padding:10px; border-radius:10px; border:1px solid #f43f5e; margin-bottom:10px;">
+                        <span style="font-size:11px; color:#fff; font-weight:700;">Assign Transaction Hash (TRX ID)</span>
+                        <input type="text" id="admin-active-trx-id" placeholder="Enter bank/crypto TRX code string" style="padding:6px; font-size:12px; margin:6px 0;">
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-success" id="admin-submit-approve-btn" style="padding:6px; font-size:11px;">Confirm Approval</button>
+                            <button class="btn btn-secondary" onclick="cancelAdminTrxPrompt()" style="padding:6px; font-size:11px;">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div id="admin-pending-payouts-list" style="font-size:12px; display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+
+                <input type="text" id="admin-search-box" placeholder="Filter user matrix parameters..." oninput="updateAdminView()" style="padding:10px; border-radius:8px; margin-bottom:10px;">
+
+                <div style="overflow-x:auto; background:#080c16; border-radius:10px; border:1px solid #1e293b;">
+                    <table>
+                        <thead><tr><th>User Registry Info</th><th>System Credits</th></tr></thead>
+                        <tbody id="admin-data-rows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <nav class="bottom-nav" id="main-navigation-panel">
+            <div class="nav-item active" id="nav-earn" onclick="switchScreen('screen-earn')"><i class='bx bx-grid-alt'></i><span data-en="Earn" data-bn="আয় করুন">Earn</span></div>
+            <div class="nav-item" id="nav-refer" onclick="switchScreen('screen-refer')"><i class='bx bx-network-chart'></i><span data-en="Refer" data-bn="রেফার">Refer</span></div>
+            <div class="nav-item" id="nav-withdraw" onclick="switchScreen('screen-withdraw')"><i class='bx bx-wallet-alt'></i><span data-en="Payout" data-bn="উইথড্র">Payout</span></div>
+            <div class="nav-item" id="nav-profile" onclick="switchScreen('screen-profile')"><i class='bx bx-shield-user'></i><span data-en="Profile" data-bn="প্রোফাইল">Profile</span></div>
+        </nav>
+
+    </div>
+
+    <script>
+        const MASTER_ADMIN_USER = "majidul";
+        const MASTER_ADMIN_PASS = "majidulpro123";
+
+        let currentAppLanguage = 'en'; 
+
+        if (!localStorage.getItem('db_app_data')) {
+            localStorage.setItem('db_app_data', JSON.stringify({ users: [], globalClicks: 0, globalNotifications: [] }));
+        }
+
+        let currentUserId = null;
+        let selectedWithdrawMethod = 'bKash';
+        
+        let adActiveSession = false;
+        let isTabActive = true; 
+        let timeRemaining = 0;
+        let totalAdDuration = 15; 
+        let pendingPointsAllocation = 0;
+        let isDailyClaimSession = false;
+        let adTimerInterval = null;
+
+        let activeAdminApprovingUserId = null;
+        let activeAdminApprovingWithdrawId = null;
+
+        function getDB() { return JSON.parse(localStorage.getItem('db_app_data')); }
+        function saveDB(data) { localStorage.setItem('db_app_data', JSON.stringify(data)); }
+        
+        function showAppToast(message) {
+            const toast = document.getElementById('app-custom-toast');
+            document.getElementById('toast-msg-node').innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        function toggleLanguage() {
+            currentAppLanguage = (currentAppLanguage === 'en') ? 'bn' : 'en';
+            applyLanguagePointers();
+            showAppToast(currentAppLanguage === 'en' ? "Language changed to English" : "ভাষা পরিবর্তন করে বাংলায় করা হয়েছে");
+        }
+
+        function applyLanguagePointers() {
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.innerText = (currentAppLanguage === 'en') ? el.getAttribute('data-en') : el.getAttribute('data-bn');
+            });
+        }
+
+        // Adsterra Iframe Dynamic Loader Fix
+        function reloadAdBanners() {
+            document.querySelectorAll('iframe[data-ad-key]').forEach(iframe => {
+                const adKey = iframe.getAttribute('data-ad-key');
+                const iframeDoc = iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(`
+                    <body style="margin:0; padding:0; display:flex; justify-content:center; align-items:center; background:transparent;">
+                        <script type="text/javascript">
+                            atOptions = { 'key' : '${adKey}', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+                        <\/script>
+                        <script type="text/javascript" src="https://www.highperformanceformat.com/${adKey}/invoke.js"><\/script>
+                    </body>
+                `);
+                iframeDoc.close();
+            });
+        }
+
+        setInterval(() => {
+            let db = getDB();
+            let changed = false;
+            const tenMinutesInMs = 10 * 60 * 1000;
+            const now = Date.now();
+
+            db.users.forEach(u => {
+                if (u.notifications) {
+                    const originalLength = u.notifications.length;
+                    u.notifications = u.notifications.filter(n => {
+                        if (n.checkedAt && (now - n.checkedAt >= tenMinutesInMs)) return false; 
+                        return true;
+                    });
+                    if (u.notifications.length !== originalLength) changed = true;
+                }
+            });
+
+            if (db.globalNotifications) {
+                const originalLength = db.globalNotifications.length;
+                db.globalNotifications = db.globalNotifications.filter(n => {
+                    if (n.checkedAt && (now - n.checkedAt >= tenMinutesInMs)) return false;
+                    return true;
+                });
+                if (db.globalNotifications.length !== originalLength) changed = true;
+            }
+
+            if (changed) {
+                saveDB(db);
+                if (document.getElementById('screen-notifications').classList.contains('active')) {
+                    renderNotificationScreenData();
+                }
+            }
+        }, 10000);
+
+        window.livePayoutConversionRatioCalc = function() {
+            const inputField = document.getElementById('withdraw-points-amount');
+            const ratioContainer = document.getElementById('live-ratio-calculator-badge');
+            const ratioStringNode = document.getElementById('live-ratio-string-node');
+            
+            const points = parseInt(inputField.value);
+            if (isNaN(points) || points < 5000) {
+                ratioContainer.style.display = 'none';
+                return;
+            }
+            ratioContainer.style.display = 'flex';
+            const moneyRatioValue = points / 250;
+            ratioStringNode.innerText = `5000 Pts = 20৳ | ${points} Pts = ${moneyRatioValue.toFixed(0)}৳`;
+        };
+
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                isTabActive = false;
+            } else {
+                isTabActive = true;
+                if (adActiveSession && timeRemaining > 0) {
+                    showAppToast(currentAppLanguage === 'en' ? "⚠️ Focus Fault! Task Resumed." : "⚠️ ফোকাস লস! পুনরায় চেষ্টা করুন।");
+                    adActiveSession = false;
+                    clearInterval(adTimerInterval);
+                    document.getElementById('ad-timer-card').classList.remove('active');
+                    document.getElementById('watch-ad-main-btn').disabled = false;
+                    document.getElementById('daily-btn').disabled = false;
+                }
+            }
+        });
+
+        window.triggerDirectLinkAd = function() {
+            if(adActiveSession) return showAppToast("Session tracking actively open.");
+            pendingPointsAllocation = 4.5;
+            totalAdDuration = 15;
+            isDailyClaimSession = false;
+            startAdTimerPipeline(totalAdDuration);
+            window.open('https://www.effectivecpmnetwork.com/dca40whbxm?key=8a7008d77f91a0a445c2b4107d5c2a14', '_blank');
+        };
+
+        window.triggerDailyReward = function() {
+            let db = getDB();
+            let user = db.users.find(u => u.id === currentUserId);
+            if(user) {
+                let today = new Date().toDateString();
+                if(user.lastDailyDate === today) return showAppToast(currentAppLanguage === 'en' ? "Claimed for today!" : "আজকের বোনাস নেওয়া হয়ে গেছে!");
+                if(adActiveSession) return showAppToast("Active verification loop found.");
+
+                pendingPointsAllocation = 3;
+                totalAdDuration = 10;
+                isDailyClaimSession = true;
+                startAdTimerPipeline(totalAdDuration);
+                window.open('https://www.effectivecpmnetwork.com/dca40whbxm?key=8a7008d77f91a0a445c2b4107d5c2a14', '_blank');
+            }
+        };
+
+        function startAdTimerPipeline(seconds) {
+            adActiveSession = true;
+            isTabActive = false; 
+            timeRemaining = seconds;
+            
+            const timerCard = document.getElementById('ad-timer-card');
+            const pbarFill = document.getElementById('ad-pbar-fill');
+            const headerLbl = document.getElementById('timer-header-lbl');
+            const claimBtn = document.getElementById('claim-ad-btn');
+            
+            timerCard.classList.add('active');
+            claimBtn.style.display = "none";
+            pbarFill.style.width = "0%";
+            pbarFill.style.background = "#38bdf8";
+            headerLbl.style.color = "#38bdf8";
+            headerLbl.innerText = `Verification Phase: ${timeRemaining}s`;
+            
+            document.getElementById('watch-ad-main-btn').disabled = true;
+            document.getElementById('daily-btn').disabled = true;
+
+            if(adTimerInterval) clearInterval(adTimerInterval);
+
+            adTimerInterval = setInterval(() => {
+                if (isTabActive) return; 
+
+                timeRemaining--;
+                let progressPercent = ((totalAdDuration - timeRemaining) / totalAdDuration) * 100;
+                pbarFill.style.width = `${progressPercent}%`;
+
+                if(timeRemaining > 0) {
+                    headerLbl.innerText = `Verification Phase: ${timeRemaining}s`;
+                } else {
+                    clearInterval(adTimerInterval);
+                    headerLbl.innerText = "Verification Success ✓";
+                    headerLbl.style.color = "#10b981";
+                    pbarFill.style.background = "#10b981";
+                    claimBtn.style.display = "block";
+                }
+            }, 1000);
+        }
+
+        window.verifyAndClaimPoints = function() {
+            if(timeRemaining > 0 || !adActiveSession) return;
+            
+            adActiveSession = false; 
+            document.getElementById('claim-ad-btn').style.display = "none";
+            document.getElementById('ad-timer-card').classList.remove('active');
+            clearInterval(adTimerInterval);
+            
+            let db = getDB();
+            let user = db.users.find(u => u.id === currentUserId);
+            
+            if(user) {
+                user.points += pendingPointsAllocation;
+                user.adsWatched = (user.adsWatched || 0) + 1;
+                db.globalClicks += 1;
+                
+                if(isDailyClaimSession) user.lastDailyDate = new Date().toDateString();
+
+                if(user.referredBy) {
+                    let referrer = db.users.find(u => u.username.toLowerCase() === user.referredBy.toLowerCase());
+                    if(referrer) {
+                        let trackingLog = referrer.referralsList.find(r => r.refereeId === user.id);
+                        if(trackingLog && trackingLog.status === 'inactive' && user.adsWatched >= 100) {
+                            trackingLog.status = 'active';
+                            referrer.points += 500;
+                            referrer.referralEarnings = (referrer.referralEarnings || 0) + 500;
+                            
+                            if(!referrer.notifications) referrer.notifications = [];
+                            referrer.notifications.push({ id: Date.now(), msg: `Your referred node ${user.username} achieved active state! +500 Pts earned.`, checkedAt: null });
+                        }
+                    }
+                }
+
+                saveDB(db);
+                updateGlobalUserViews();
+                showAppToast(`Success: +${pendingPointsAllocation} Pts credited.`);
+            }
+
+            document.getElementById('watch-ad-main-btn').disabled = false;
+            document.getElementById('daily-btn').disabled = false;
+        };
+
+        window.copyReferCode = function() {
+            navigator.clipboard.writeText(document.getElementById('user-refer-code-lbl').innerText);
+            showAppToast("Referral code copied successfully.");
+        };
+
+        window.selectMethod = function(element, methodString) {
+            document.querySelectorAll('.method-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedWithdrawMethod = methodString;
+        };
+
+        function switchScreen(screenId) {
+            if(adActiveSession && screenId !== 'screen-earn') {
+                return showAppToast("Conclude active verification matrix cycle first!");
+            }
+
+            document.querySelectorAll('.screen-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            const navPanel = document.getElementById('main-navigation-panel');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            if(['screen-earn', 'screen-refer', 'screen-withdraw', 'screen-profile', 'screen-notifications'].includes(screenId)) {
+                if(screenId !== 'screen-notifications') {
+                    navPanel.classList.add('visible');
+                } else {
+                    navPanel.classList.remove('visible');
+                }
+                if(screenId === 'screen-earn') document.getElementById('nav-earn').classList.add('active');
+                if(screenId === 'screen-refer') document.getElementById('nav-refer').classList.add('active');
+                if(screenId === 'screen-withdraw') document.getElementById('nav-withdraw').classList.add('active');
+                if(screenId === 'screen-profile') document.getElementById('nav-profile').classList.add('active');
+                updateGlobalUserViews();
+            } else {
+                navPanel.classList.remove('visible');
+            }
+            if(screenId === 'screen-notifications') renderNotificationScreenData();
+            if(screenId === 'screen-admin-dashboard') updateAdminView();
+            
+            reloadAdBanners();
+            applyLanguagePointers();
+        }
+
+        document.getElementById('regForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let db = getDB();
+            const email = document.getElementById('reg-email').value;
+            const username = document.getElementById('reg-name').value.trim();
+            const password = document.getElementById('reg-pass').value;
+            const typedRefer = document.getElementById('reg-refer').value.trim();
+
+            if (db.users.find(u => u.email === email || u.username.toLowerCase() === username.toLowerCase())) {
+                return showAppToast("Identity configuration actively parsed.");
+            }
+
+            let initialPoints = 0, referredByName = null;
+            if(typedRefer) {
+                let targetReferrer = db.users.find(u => u.username.toLowerCase() === typedRefer.toLowerCase());
+                if(targetReferrer && targetReferrer.username.toLowerCase() !== username.toLowerCase()) {
+                    initialPoints = 100; 
+                    referredByName = targetReferrer.username;
+                } else {
+                    return showAppToast("Referral configuration signature error.");
+                }
+            }
+
+            const newUser = { 
+                id: Date.now(), username, email, password, points: initialPoints, 
+                adsWatched: 0, lastDailyDate: "", referredBy: referredByName, referralEarnings: 0, 
+                referralsList: [], withdraws: [], joinDate: new Date().toLocaleDateString(), notifications: [] 
+            };
+
+            if(referredByName) {
+                let parentUser = db.users.find(u => u.username.toLowerCase() === referredByName.toLowerCase());
+                if(parentUser) {
+                    if(!parentUser.referralsList) parentUser.referralsList = [];
+                    parentUser.referralsList.push({ refereeId: newUser.id, refereeName: newUser.username, status: 'inactive' });
+                }
+            }
+
+            db.users.push(newUser);
+            saveDB(db);
+            currentUserId = newUser.id;
+            document.getElementById('regForm').reset();
+            switchScreen('screen-earn');
+        });
+
+        document.getElementById('logForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let db = getDB();
+            const user = db.users.find(u => u.email === document.getElementById('log-email').value && u.password === document.getElementById('log-pass').value);
+            if (!user) return showAppToast("Invalid operational access key map.");
+            currentUserId = user.id;
+            document.getElementById('logForm').reset();
+            switchScreen('screen-earn');
+        });
+
+        document.getElementById('admLogForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (document.getElementById('adm-user').value === MASTER_ADMIN_USER && document.getElementById('adm-pass').value === MASTER_ADMIN_PASS) {
+                document.getElementById('admLogForm').reset();
+                switchScreen('screen-admin-dashboard');
+            } else {
+                showAppToast("Signature System Authentication Failure!");
+            }
+        });
+
+        document.getElementById('cashForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let db = getDB();
+            let user = db.users.find(u => u.id === currentUserId);
+            const targetPointsToWithdraw = parseInt(document.getElementById('withdraw-points-amount').value);
+            
+            if (user) {
+                if (targetPointsToWithdraw < 5000 || targetPointsToWithdraw > 50000) {
+                    return showAppToast("Amount must be between 5000 and 50000 Pts.");
+                }
+                if (user.points < targetPointsToWithdraw) return showAppToast("Insufficient credit balance.");
+                
+                user.points -= targetPointsToWithdraw;
+                
+                const payoutPayload = { 
+                    id: Date.now(), 
+                    method: selectedWithdrawMethod, 
+                    points: targetPointsToWithdraw,
+                    cashAmount: (targetPointsToWithdraw / 250).toFixed(0), 
+                    address: document.getElementById('withdraw-address').value.trim(), 
+                    date: new Date().toLocaleDateString(), 
+                    status: 'pending',
+                    trxId: null 
+                };
+                
+                if(!user.withdraws) user.withdraws = [];
+                user.withdraws.push(payoutPayload);
+                
+                saveDB(db);
+                document.getElementById('withdraw-points-amount').value = '';
+                document.getElementById('withdraw-address').value = '';
+                document.getElementById('live-ratio-calculator-badge').style.display = 'none';
+                updateGlobalUserViews();
+                showAppToast("Settlement transaction processed.");
+            }
+        });
+
+        function renderNotificationScreenData() {
+            let db = getDB();
+            let user = db.users.find(u => u.id === currentUserId);
+            const container = document.getElementById('user-notifications-list-container');
+            const now = Date.now();
+            let changed = false;
+
+            if (!user) return;
+
+            let systemNotificationsArray = [];
+            if(db.globalNotifications) systemNotificationsArray = db.globalNotifications.map(n => ({...n, type: 'global'}));
+            if(user.notifications) systemNotificationsArray = [...systemNotificationsArray, ...user.notifications.map(n => ({...n, type: 'personal'}))];
+            
+            systemNotificationsArray.sort((a,b) => b.id - a.id);
+
+            if(db.globalNotifications) {
+                db.globalNotifications.forEach(n => { if (!n.checkedAt) { n.checkedAt = now; changed = true; } });
+            }
+            if(user.notifications) {
+                user.notifications.forEach(n => { if (!n.checkedAt) { n.checkedAt = now; changed = true; } });
+            }
+            if (changed) saveDB(db);
+
+            container.innerHTML = systemNotificationsArray.map(n => {
+                const elapsedSeconds = Math.floor((now - (n.checkedAt || now)) / 1000);
+                const remainingSeconds = Math.max(0, 600 - elapsedSeconds); 
+                const minutesLeft = Math.floor(remainingSeconds / 60);
+                const secondsLeft = remainingSeconds % 60;
+
+                return `
+                <div class="notification-item">
+                    <i class='bx bxs-bell-ring' style="font-size: 18px; color:#38bdf8; margin-top:2px;"></i>
+                    <div style="flex:1;">
+                        <p style="font-size:13px; color:#fff; font-weight:500;">${n.msg}</p>
+                        <span class="notification-timer"><i class='bx bx-time-five'></i> Deletes in: ${minutesLeft}m ${secondsLeft}s</span>
+                    </div>
+                </div>`;
+            }).join('') || `<div style='text-align:center; color:#475569; padding-top:40px; font-size:13px;'>No new notifications.</div>`;
+        }
+
+        function updateGlobalUserViews() {
+            let db = getDB();
+            let user = db.users.find(u => u.id === currentUserId);
+            if (user) {
+                document.querySelectorAll('.user-pts-display').forEach(el => el.innerText = user.points + " Pts");
+                document.getElementById('prof-user-lbl').innerText = user.username;
+                document.getElementById('prof-email-lbl').innerText = user.email;
+                document.getElementById('prof-ads-lbl').innerText = user.adsWatched || 0;
+                document.getElementById('prof-join-date-lbl').innerText = user.joinDate || "N/A";
+                document.getElementById('user-refer-code-lbl').innerText = user.username;
+                document.getElementById('user-ref-count').innerText = user.referralsList ? user.referralsList.length : 0;
+                document.getElementById('user-ref-earning').innerText = (user.referralEarnings || 0) + " Pts";
+
+                let hasUncheckedNotice = false;
+                if(db.globalNotifications && db.globalNotifications.some(n => !n.checkedAt)) hasUncheckedNotice = true;
+                if(user.notifications && user.notifications.some(n => !n.checkedAt)) hasUncheckedNotice = true;
+                document.getElementById('app-bell-badge').style.display = hasUncheckedNotice ? 'block' : 'none';
+
+                document.getElementById('user-ref-list-rows').innerHTML = (user.referralsList || []).map(r => {
+                    let match = db.users.find(u => u.id === r.refereeId);
+                    return `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1e293b;">
+                        <div><strong>${r.refereeName}</strong><br><small style="color:#64748b;">Ads Logged: ${match?(match.adsWatched||0):0}/100</small></div>
+                        <div><span class="badge-status status-${r.status}">${r.status}</span></div>
+                    </div>`;
+                }).join('') || `<span style='color:#475569;'>No subnodes registered.</span>`;
+
+                let historyHTML = "";
+                if (user.withdraws && user.withdraws.length > 0) {
+                    user.withdraws.forEach(w => {
+                        let trxRender = w.trxId ? `<br><span style="color:#38bdf8; font-family:monospace; font-size:11px;">TRX: ${w.trxId}</span>` : '';
+                        historyHTML += `
+                        <div style="display:flex; flex-direction:column; padding:10px 0; border-bottom:1px solid #1e293b; width:100%;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <strong style="color:#fff;">${w.method} (${w.points} Pts = ${w.cashAmount || (w.points/250).toFixed(0)}৳)</strong> 
+                                    <br><small style="color:#64748b;">${w.address} • ${w.date}</small>
+                                </div>
+                                <div><span class="badge-status status-${w.status}">${w.status}</span></div>
+                            </div>
+                            ${trxRender}
+                        </div>`;
+                    });
+                } else {
+                    historyHTML = "<span style='color:#475569; font-size:12px;'>No records found.</span>";
+                }
+                document.getElementById('user-payment-history-rows').innerHTML = historyHTML;
+            }
+        }
+
+        function toggleAdminMsgTargetUI() {
+            const val = document.getElementById('admin-msg-target-type').value;
+            document.getElementById('admin-msg-target-user').style.display = (val === 'single') ? 'block' : 'none';
+        }
+
+        function dispatchAdminNotification() {
+            let db = getDB();
+            const type = document.getElementById('admin-msg-target-type').value;
+            const targetUser = document.getElementById('admin-msg-target-user').value.trim();
+            const messageBody = document.getElementById('admin-custom-msg-body').value.trim();
+
+            if(!messageBody) return showAppToast("Message text block empty.");
+            const payloadNode = { id: Date.now(), msg: messageBody, checkedAt: null };
+
+            if(type === 'all') {
+                if(!db.globalNotifications) db.globalNotifications = [];
+                db.globalNotifications.push(payloadNode);
+                showAppToast("Global notification dispatched.");
+            } else {
+                let match = db.users.find(u => u.username.toLowerCase() === targetUser.toLowerCase());
+                if(!match) return showAppToast("Target profile user mapping error!");
+                if(!match.notifications) match.notifications = [];
+                match.notifications.push(payloadNode);
+                showAppToast(`Direct notification routed to ${match.username}`);
+            }
+            saveDB(db);
+            document.getElementById('admin-custom-msg-body').value = '';
+        }
+
+        function updateAdminView() {
+            let db = getDB();
+            document.getElementById('admin-clicks-lbl').innerText = db.globalClicks || 0;
+            document.getElementById('admin-users-lbl').innerText = db.users.length || 0;
+            const searchVal = document.getElementById('admin-search-box').value.toLowerCase();
+
+            let pendingPayoutsHTML = "";
+            db.users.forEach(u => {
+                if(u.withdraws && u.withdraws.length > 0) {
+                    u.withdraws.forEach(w => {
+                        if(w.status === 'pending') {
+                            pendingPayoutsHTML += `
+                            <div style="background:#0c1222; padding:10px; border-radius:10px; border:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
+                                <div style="flex:1;">
+                                    <strong>${u.username}</strong> (${w.method})<br>
+                                    <span style="color:#10b981; font-weight:700;">Amt: ${w.points} Pts (${w.cashAmount || (w.points/250).toFixed(0)}৳)</span><br>
+                                    <small style="color:#64748b;">Wallet: ${w.address}</small>
+                                </div>
+                                <div>
+                                    <button class="admin-action-btn admin-approve" onclick="openAdminTrxPrompt(${u.id}, ${w.id})">Accept</button>
+                                    <button class="admin-action-btn admin-reject" onclick="resolveTransaction(${u.id}, ${w.id}, 'declined', null)">Reject</button>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                }
+            });
+            document.getElementById('admin-pending-payouts-list').innerHTML = pendingPayoutsHTML || "<span>No pending settlements.</span>";
+
+            const dataBody = document.getElementById('admin-data-rows');
+            dataBody.innerHTML = db.users.filter(u => u.username.toLowerCase().includes(searchVal)).map(u => `
+                <tr>
+                    <td><strong>${u.username}</strong><br><small style="color:#64748b;">Ads: ${u.adsWatched || 0}</small></td>
+                    <td>
+                        <input type="number" style="width:70px; padding:4px; margin:0; display:inline-block;" id="adm-p-${u.id}" value="${u.points}">
+                        <button onclick="saveUserPoints(${u.id})" style="padding:4px 8px; background:#38bdf8; border:none; color:#000; font-weight:700; border-radius:4px;">Save</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.openAdminTrxPrompt = function(uid, wid) {
+            activeAdminApprovingUserId = uid;
+            activeAdminApprovingWithdrawId = wid;
+            document.getElementById('admin-active-trx-id').value = '';
+            document.getElementById('admin-trx-input-panel').style.display = 'block';
+            
+            document.getElementById('admin-submit-approve-btn').onclick = function() {
+                const generatedTrxId = document.getElementById('admin-active-trx-id').value.trim();
+                if(!generatedTrxId) return alert("Please assign a valid TRX hash string.");
+                resolveTransaction(activeAdminApprovingUserId, activeAdminApprovingWithdrawId, 'approved', generatedTrxId);
+                document.getElementById('admin-trx-input-panel').style.display = 'none';
+            };
+        };
+
+        window.cancelAdminTrxPrompt = function() {
+            document.getElementById('admin-trx-input-panel').style.display = 'none';
+        };
+
+        window.saveUserPoints = function(uid) {
+            let db = getDB();
+            let user = db.users.find(u => u.id === uid);
+            const inputVal = document.getElementById(`adm-p-${uid}`).value;
+            if(user) {
+                user.points = parseInt(inputVal) || 0;
+                saveDB(db);
+                showAppToast("User credit modified.");
+                updateAdminView();
+            }
+        };
+
+        window.resolveTransaction = function(uid, wid, state, customTrxStr) {
+            let db = getDB();
+            let user = db.users.find(u => u.id === uid);
+            if(user) {
+                let tx = user.withdraws.find(w => w.id === wid);
+                if(tx) {
+                    tx.status = state;
+                    tx.trxId = customTrxStr || null;
+                    if(state === 'declined') user.points += tx.points; 
+                    
+                    if(!user.notifications) user.notifications = [];
+                    user.notifications.push({ 
+                        id: Date.now(), 
+                        msg: state === 'approved' ? `Payout of ${tx.points} Pts (${tx.cashAmount}৳) via ${tx.method} ACCEPTED. TRX: ${customTrxStr}` : `Payout via ${tx.method} DECLINED. ${tx.points} Pts returned.`, 
+                        checkedAt: null 
+                    });
+
+                    saveDB(db);
+                    showAppToast(`Transaction updated.`);
+                    updateAdminView();
+                }
+            }
+        };
+
+        window.logout = function() {
+            if(adActiveSession) return showAppToast("Conclude open session parameters.");
+            currentUserId = null;
+            switchScreen('screen-login');
+        };
+
+        // First banner initializing render setup
+        window.onload = function() {
+            reloadAdBanners();
+        };
+    </script>
+</body>
+                                                                                  </html>
