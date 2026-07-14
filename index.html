@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Earn Engine v4.0</title>
+    <title>Enterprise Earn Engine v5.0</title>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -47,6 +47,11 @@
         input, select, textarea { width: 100%; padding: 12px 14px; background: #080c16; border: 2px solid #1e293b; border-radius: 12px; color: white; margin-bottom: 12px; font-size: 14px; transition: all 0.25s ease; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: #38bdf8; background: #0c1222; }
         
+        .name-row { display: flex; gap: 10px; }
+        
+        .captcha-box { background: #080c16; border: 1px dashed #38bdf8; padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 10px; font-weight: 700; font-size: 16px; color: #38bdf8; letter-spacing: 2px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .captcha-refresh { cursor: pointer; color: #64748b; font-size: 18px; }
+
         .btn { width: 100%; padding: 12px 16px; color: white; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
         .btn:active { transform: scale(0.97); }
         .btn:disabled { background: #1e293b !important; color: #64748b; cursor: not-allowed; box-shadow: none !important; }
@@ -119,12 +124,30 @@
         .admin-action-btn { padding: 5px 8px; font-size: 11px; border-radius: 6px; border: none; cursor: pointer; font-weight: 800; margin-top: 4px; display: inline-flex; align-items: center; }
         .admin-approve { background: #10b981; color: white; margin-right: 4px; }
         .admin-reject { background: #f43f5e; color: white; }
+        
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7,10,18,0.9); z-index: 20000; display: none; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #1e293b; border-top: 4px solid #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ADVANCED PROFILE UI ELEMENTS */
+        .avatar-uploader-container { position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto; }
+        .profile-avatar-node { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #38bdf8; object-fit: cover; background: #080c16; }
+        .avatar-edit-badge { position: absolute; bottom: 0; right: 0; background: #38bdf8; color: #070a12; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; border: 2px solid #0f1422; }
+        #avatar-file-input { display: none; }
+        .live-sync-indicator { font-size: 11px; color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+        .live-sync-indicator span { width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
     </style>
 </head>
 <body>
 
     <div class="phone-wrapper">
         
+        <div id="loading-screen" class="loading-overlay">
+            <div class="spinner"></div>
+            <p style="font-size: 14px; font-weight: 600; color: #38bdf8;">Syncing Cloud Database...</p>
+        </div>
+
         <div id="app-custom-toast" class="app-toast-container">
             <i class='bx bx-layer-plus' style="font-size: 22px; color: #38bdf8;"></i>
             <span id="toast-msg-node" style="font-size: 13px; font-weight: 600;">System Ready</span>
@@ -135,7 +158,7 @@
             <!-- 1. REGISTRATION MODULE -->
             <div id="screen-register" class="screen-content active">
                 <div class="top-action-bar">
-                    <span style="font-size:12px; font-weight:700; color:#64748b;">System Platform</span>
+                    <span style="font-size:12px; font-weight:700; color:#64748b;">Global Cloud Engine</span>
                     <button class="lang-switch-btn" onclick="toggleLanguage()">EN / বাং</button>
                 </div>
                 <div class="smart-ad-container">
@@ -145,10 +168,21 @@
                 </div>
                 <h2 data-en="Create Account" data-bn="নতুন অ্যাকাউন্ট তৈরি করুন">Create Account</h2>
                 <form id="regForm">
+                    <div class="name-row">
+                        <input type="text" id="reg-fname" placeholder="First Name" required>
+                        <input type="text" id="reg-lname" placeholder="Last Name" required>
+                    </div>
                     <input type="text" id="reg-name" placeholder="Username" required>
                     <input type="email" id="reg-email" placeholder="Email Address" required>
                     <input type="password" id="reg-pass" placeholder="Password" required>
                     <input type="text" id="reg-refer" placeholder="Refer Code (Optional)">
+                    
+                    <div class="captcha-box">
+                        <span id="reg-captcha-question">0 + 0 = ?</span>
+                        <i class='bx bx-refresh captcha-refresh' onclick="generateCaptcha('reg')"></i>
+                    </div>
+                    <input type="number" id="reg-captcha-input" placeholder="Enter Captcha Answer" required>
+
                     <button type="submit" class="btn btn-success"><i class='bx bx-user-plus'></i> <span data-en="Register Now" data-bn="নিবন্ধন করুন">Register Now</span></button>
                 </form>
                 <p style="text-align:center; margin-top:15px; font-size: 13px;"><span data-en="Member already?" data-bn="আগে থেকেই অ্যাকাউন্ট আছে?">Member already?</span> <span style="color:#38bdf8; cursor:pointer; font-weight:700;" onclick="switchScreen('screen-login')" data-en="Login" data-bn="লগইন করুন">Login</span></p>
@@ -169,6 +203,13 @@
                 <form id="logForm">
                     <input type="email" id="log-email" placeholder="Email Address" required>
                     <input type="password" id="log-pass" placeholder="Password" required>
+                    
+                    <div class="captcha-box">
+                        <span id="log-captcha-question">0 + 0 = ?</span>
+                        <i class='bx bx-refresh captcha-refresh' onclick="generateCaptcha('log')"></i>
+                    </div>
+                    <input type="number" id="log-captcha-input" placeholder="Enter Captcha Answer" required>
+
                     <button type="submit" class="btn btn-primary"><i class='bx bx-log-in'></i> <span data-en="Login Account" data-bn="লগইন করুন">Login Account</span></button>
                 </form>
                 <p style="text-align:center; margin-top:15px; font-size: 13px;"><span data-en="New member?" data-bn="নতুন মেম্বার?">New member?</span> <span style="color:#38bdf8; cursor:pointer; font-weight:700;" onclick="switchScreen('screen-register')" data-en="Sign Up" data-bn="নিবন্ধন করুন">Sign Up</span></p>
@@ -228,7 +269,7 @@
 
                 <div style="margin-top: 20px;">
                     <h3>Official Channels Hub</h3>
-                    <a href="https://t.me/earningpointhelp" target="_blank" style="text-decoration: none; color: inherit;">
+                    <a href="https://telegram.me/earningpointhelp" target="_blank" style="text-decoration: none; color: inherit;">
                         <div class="community-card">
                             <div class="community-info" style="display:flex; align-items:center; gap:12px;">
                                 <div class="community-icon" style="width:38px; height:38px; background:#24a1de; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; color:white;"><i class='bx bx-support'></i></div>
@@ -237,7 +278,7 @@
                             <i class='bx bx-chevron-right' style="font-size: 20px; color:#475569;"></i>
                         </div>
                     </a>
-                    <a href="https://t.me/EarningPointOfficialAnnouncement" target="_blank" style="text-decoration: none; color: inherit;">
+                    <a href="https://telegram.me/Enterprise_Earn_Engine" target="_blank" style="text-decoration: none; color: inherit;">
                         <div class="community-card">
                             <div class="community-info" style="display:flex; align-items:center; gap:12px;">
                                 <div class="community-icon" style="width:38px; height:38px; background:#229ed9; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; color:white;"><i class='bx bx-broadcast'></i></div>
@@ -323,7 +364,7 @@
                 </div>
             </div>
 
-            <!-- 8. ACCOUNT METRIC PROFILE -->
+            <!-- 8. ACCOUNT METRIC PROFILE (ADVANCED) -->
             <div id="screen-profile" class="screen-content">
                 <div class="smart-ad-container">
                     <div class="adsterra-smart-banner">
@@ -331,11 +372,21 @@
                     </div>
                 </div>
                 <h2 data-en="Security Node Profile" data-bn="ইউজার প্রোফাইল ম্যাট্রিক্স">Security Node Profile</h2>
+                
                 <div style="text-align:center; margin-bottom: 20px;">
-                    <h3 id="prof-user-lbl" style="font-size: 18px; color: #38bdf8;">User Ledger</h3>
+                    <!-- Advanced Avatar Setup -->
+                    <div class="avatar-uploader-container">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=default" id="prof-avatar-display" class="profile-avatar-node" alt="Avatar">
+                        <label for="avatar-file-input" class="avatar-edit-badge"><i class='bx bx-camera'></i></label>
+                        <input type="file" id="avatar-file-input" accept="image/*" onchange="uploadProfilePicture(this)">
+                    </div>
+
+                    <h3 id="prof-fullname-lbl" style="font-size: 19px; color: #fff; margin-bottom: 2px;">John Doe</h3>
+                    <p id="prof-user-lbl" style="color: #38bdf8; font-size: 14px; font-weight: 600; margin-bottom: 4px;">@username</p>
                     <p id="prof-email-lbl" style="color: #64748b; font-size:12px;">Active Address Map</p>
                     <p style="color: #e2e8f0; font-size: 12px; margin-top: 6px; font-weight:600;"><i class='bx bx-calendar-alt' style="color:#a855f7;"></i> <span data-en="Joined on:" data-bn="যোগদানের তারিখ:">Joined on:</span> <span id="prof-join-date-lbl" style="color: #a855f7; font-weight:800;">-</span></p>
                 </div>
+
                 <div class="info-row"><span data-en="Current Points Account" data-bn="বর্তমান পয়েন্ট ব্যালেন্স">Current Points Account</span><span class="user-pts-display" style="color:#10b981; font-weight:700;">0 Pts</span></div>
                 <div class="info-row"><span data-en="Aggregated Ads Logged" data-bn="মোট দেখা বিজ্ঞাপনের সংখ্যা">Aggregated Ads Logged</span><span id="prof-ads-lbl" style="color:#38bdf8; font-weight:700;">0</span></div>
                 <button onclick="logout()" class="btn btn-danger" style="margin-top: 20px;"><i class='bx bx-power-off'></i> <span data-en="Terminate Session" data-bn="লগ আউট করুন">Terminate Session</span></button>
@@ -344,7 +395,10 @@
             <!-- 9. ADVANCED ADMIN DASHBOARD -->
             <div id="screen-admin-dashboard" class="screen-content">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; width:100%;">
-                    <h3 style="color:#f43f5e; margin:0;"><i class='bx bx-shield-quarter'></i> Matrix Core Engine</h3>
+                    <div style="display:flex; flex-direction:column;">
+                        <h3 style="color:#f43f5e; margin:0;"><i class='bx bx-shield-quarter'></i> Matrix Core Engine</h3>
+                        <div class="live-sync-indicator"><span></span> Realtime Sync Active</div>
+                    </div>
                     <button onclick="logout()" class="btn btn-secondary" style="width:auto; padding:6px 12px; font-size:11px;">Lock Console</button>
                 </div>
                 
@@ -404,11 +458,13 @@
         const MASTER_ADMIN_USER = "majidul";
         const MASTER_ADMIN_PASS = "majidulpro123";
 
-        let currentAppLanguage = 'en'; 
+        // FREE REALTIME CLOUD SYNC CONFIGURATION
+        const BIN_ID = "6643bf32acd3cb34a8a7ca23"; 
+        const API_KEY = "$2a$10$wJmGvRskKqZpQ9gK/W6Xz.8C0b.0rY/U9kR8/xW5jB6L1N0R5MvW6"; 
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-        if (!localStorage.getItem('db_app_data')) {
-            localStorage.setItem('db_app_data', JSON.stringify({ users: [], globalClicks: 0, globalNotifications: [] }));
-        }
+        let currentAppLanguage = 'en'; 
+        let appStateMemory = { users: [], globalClicks: 0, globalNotifications: [] };
 
         let currentUserId = null;
         let selectedWithdrawMethod = 'bKash';
@@ -420,12 +476,66 @@
         let pendingPointsAllocation = 0;
         let isDailyClaimSession = false;
         let adTimerInterval = null;
+        let adminRealtimeEngineInterval = null;
 
         let activeAdminApprovingUserId = null;
         let activeAdminApprovingWithdrawId = null;
 
-        function getDB() { return JSON.parse(localStorage.getItem('db_app_data')); }
-        function saveDB(data) { localStorage.setItem('db_app_data', JSON.stringify(data)); }
+        // CAPTCHA STATES
+        let currentRegCaptchaAnswer = 0;
+        let currentLogCaptchaAnswer = 0;
+
+        function showLoader(status) {
+            document.getElementById('loading-screen').style.display = status ? 'flex' : 'none';
+        }
+
+        function generateCaptcha(target) {
+            let num1 = Math.floor(Math.random() * 10) + 1;
+            let num2 = Math.floor(Math.random() * 10) + 1;
+            let answer = num1 + num2;
+            
+            if (target === 'reg') {
+                currentRegCaptchaAnswer = answer;
+                document.getElementById('reg-captcha-question').innerText = `${num1} + ${num2} = ?`;
+            } else {
+                currentLogCaptchaAnswer = answer;
+                document.getElementById('log-captcha-question').innerText = `${num1} + ${num2} = ?`;
+            }
+        }
+
+        async function pullCloudDB() {
+            try {
+                const response = await fetch(`${API_URL}/latest`, {
+                    headers: { "X-Master-Key": API_KEY }
+                });
+                const resData = await response.json();
+                if(resData.record) {
+                    appStateMemory = resData.record;
+                    localStorage.setItem('db_app_data', JSON.stringify(appStateMemory));
+                }
+            } catch (err) {
+                console.error("Cloud pull failure, loading fallback local cache state.", err);
+                if(localStorage.getItem('db_app_data')) {
+                    appStateMemory = JSON.parse(localStorage.getItem('db_app_data'));
+                }
+            }
+        }
+
+        async function pushCloudDB() {
+            try {
+                localStorage.setItem('db_app_data', JSON.stringify(appStateMemory));
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": API_KEY
+                    },
+                    body: JSON.stringify(appStateMemory)
+                });
+            } catch (err) {
+                console.error("Cloud push failure.", err);
+            }
+        }
         
         function showAppToast(message) {
             const toast = document.getElementById('app-custom-toast');
@@ -446,7 +556,6 @@
             });
         }
 
-        // Adsterra Iframe Dynamic Loader Fix
         function reloadAdBanners() {
             document.querySelectorAll('iframe[data-ad-key]').forEach(iframe => {
                 const adKey = iframe.getAttribute('data-ad-key');
@@ -463,40 +572,6 @@
                 iframeDoc.close();
             });
         }
-
-        setInterval(() => {
-            let db = getDB();
-            let changed = false;
-            const tenMinutesInMs = 10 * 60 * 1000;
-            const now = Date.now();
-
-            db.users.forEach(u => {
-                if (u.notifications) {
-                    const originalLength = u.notifications.length;
-                    u.notifications = u.notifications.filter(n => {
-                        if (n.checkedAt && (now - n.checkedAt >= tenMinutesInMs)) return false; 
-                        return true;
-                    });
-                    if (u.notifications.length !== originalLength) changed = true;
-                }
-            });
-
-            if (db.globalNotifications) {
-                const originalLength = db.globalNotifications.length;
-                db.globalNotifications = db.globalNotifications.filter(n => {
-                    if (n.checkedAt && (now - n.checkedAt >= tenMinutesInMs)) return false;
-                    return true;
-                });
-                if (db.globalNotifications.length !== originalLength) changed = true;
-            }
-
-            if (changed) {
-                saveDB(db);
-                if (document.getElementById('screen-notifications').classList.contains('active')) {
-                    renderNotificationScreenData();
-                }
-            }
-        }, 10000);
 
         window.livePayoutConversionRatioCalc = function() {
             const inputField = document.getElementById('withdraw-points-amount');
@@ -539,8 +614,7 @@
         };
 
         window.triggerDailyReward = function() {
-            let db = getDB();
-            let user = db.users.find(u => u.id === currentUserId);
+            let user = appStateMemory.users.find(u => u.id === currentUserId);
             if(user) {
                 let today = new Date().toDateString();
                 if(user.lastDailyDate === today) return showAppToast(currentAppLanguage === 'en' ? "Claimed for today!" : "আজকের বোনাস নেওয়া হয়ে গেছে!");
@@ -595,7 +669,7 @@
             }, 1000);
         }
 
-        window.verifyAndClaimPoints = function() {
+        async function verifyAndClaimPoints() {
             if(timeRemaining > 0 || !adActiveSession) return;
             
             adActiveSession = false; 
@@ -603,18 +677,17 @@
             document.getElementById('ad-timer-card').classList.remove('active');
             clearInterval(adTimerInterval);
             
-            let db = getDB();
-            let user = db.users.find(u => u.id === currentUserId);
+            let user = appStateMemory.users.find(u => u.id === currentUserId);
             
             if(user) {
                 user.points += pendingPointsAllocation;
                 user.adsWatched = (user.adsWatched || 0) + 1;
-                db.globalClicks += 1;
+                appStateMemory.globalClicks += 1;
                 
                 if(isDailyClaimSession) user.lastDailyDate = new Date().toDateString();
 
                 if(user.referredBy) {
-                    let referrer = db.users.find(u => u.username.toLowerCase() === user.referredBy.toLowerCase());
+                    let referrer = appStateMemory.users.find(u => u.username.toLowerCase() === user.referredBy.toLowerCase());
                     if(referrer) {
                         let trackingLog = referrer.referralsList.find(r => r.refereeId === user.id);
                         if(trackingLog && trackingLog.status === 'inactive' && user.adsWatched >= 100) {
@@ -628,14 +701,14 @@
                     }
                 }
 
-                saveDB(db);
+                await pushCloudDB();
                 updateGlobalUserViews();
                 showAppToast(`Success: +${pendingPointsAllocation} Pts credited.`);
             }
 
             document.getElementById('watch-ad-main-btn').disabled = false;
             document.getElementById('daily-btn').disabled = false;
-        };
+        }
 
         window.copyReferCode = function() {
             navigator.clipboard.writeText(document.getElementById('user-refer-code-lbl').innerText);
@@ -648,9 +721,41 @@
             selectedWithdrawMethod = methodString;
         };
 
-        function switchScreen(screenId) {
+        // ADVANCED BASE64 IMAGE UPLOADER NODE
+        window.uploadProfilePicture = function(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Image = e.target.result;
+                    document.getElementById('prof-avatar-display').src = base64Image;
+                    
+                    let user = appStateMemory.users.find(u => u.id === currentUserId);
+                    if (user) {
+                        user.avatar = base64Image;
+                        await pushCloudDB();
+                        showAppToast("Profile picture successfully synced.");
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        async function switchScreen(screenId) {
             if(adActiveSession && screenId !== 'screen-earn') {
                 return showAppToast("Conclude active verification matrix cycle first!");
+            }
+
+            // Realtime loop control for admin panel
+            if (screenId === 'screen-admin-dashboard') {
+                startAdminRealtimeEngine();
+            } else {
+                stopAdminRealtimeEngine();
+            }
+
+            if(['screen-earn', 'screen-refer', 'screen-withdraw', 'screen-profile'].includes(screenId)) {
+                showLoader(true);
+                await pullCloudDB(); 
+                showLoader(false);
             }
 
             document.querySelectorAll('.screen-content').forEach(el => el.classList.remove('active'));
@@ -680,55 +785,105 @@
             applyLanguagePointers();
         }
 
-        document.getElementById('regForm').addEventListener('submit', (e) => {
+        // REALTIME ADMIN SYNC CORE ENGINE (Runs every 5 seconds)
+        function startAdminRealtimeEngine() {
+            if(adminRealtimeEngineInterval) clearInterval(adminRealtimeEngineInterval);
+            adminRealtimeEngineInterval = setInterval(async () => {
+                await pullCloudDB();
+                updateAdminView();
+            }, 5000); 
+        }
+
+        function stopAdminRealtimeEngine() {
+            if(adminRealtimeEngineInterval) {
+                clearInterval(adminRealtimeEngineInterval);
+                adminRealtimeEngineInterval = null;
+            }
+        }
+
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            let db = getDB();
-            const email = document.getElementById('reg-email').value;
+            
+            // Validate Captcha
+            const captchaInput = parseInt(document.getElementById('reg-captcha-input').value);
+            if(captchaInput !== currentRegCaptchaAnswer) {
+                showAppToast("Wrong Captcha! Try again.");
+                generateCaptcha('reg');
+                return;
+            }
+
+            showLoader(true);
+            await pullCloudDB();
+
+            const firstName = document.getElementById('reg-fname').value.trim();
+            const lastName = document.getElementById('reg-lname').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
             const username = document.getElementById('reg-name').value.trim();
             const password = document.getElementById('reg-pass').value;
             const typedRefer = document.getElementById('reg-refer').value.trim();
 
-            if (db.users.find(u => u.email === email || u.username.toLowerCase() === username.toLowerCase())) {
-                return showAppToast("Identity configuration actively parsed.");
+            if (appStateMemory.users.find(u => u.email.toLowerCase() === email.toLowerCase() || u.username.toLowerCase() === username.toLowerCase())) {
+                showLoader(false);
+                return showAppToast("Identity configuration actively parsed / Email Already Exists.");
             }
 
             let initialPoints = 0, referredByName = null;
             if(typedRefer) {
-                let targetReferrer = db.users.find(u => u.username.toLowerCase() === typedRefer.toLowerCase());
+                let targetReferrer = appStateMemory.users.find(u => u.username.toLowerCase() === typedRefer.toLowerCase());
                 if(targetReferrer && targetReferrer.username.toLowerCase() !== username.toLowerCase()) {
                     initialPoints = 100; 
                     referredByName = targetReferrer.username;
                 } else {
+                    showLoader(false);
                     return showAppToast("Referral configuration signature error.");
                 }
             }
 
             const newUser = { 
-                id: Date.now(), username, email, password, points: initialPoints, 
+                id: Date.now(), firstName, lastName, username, email, password, points: initialPoints, 
                 adsWatched: 0, lastDailyDate: "", referredBy: referredByName, referralEarnings: 0, 
-                referralsList: [], withdraws: [], joinDate: new Date().toLocaleDateString(), notifications: [] 
+                referralsList: [], withdraws: [], joinDate: new Date().toLocaleDateString(), notifications: [],
+                avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`
             };
 
             if(referredByName) {
-                let parentUser = db.users.find(u => u.username.toLowerCase() === referredByName.toLowerCase());
+                let parentUser = appStateMemory.users.find(u => u.username.toLowerCase() === referredByName.toLowerCase());
                 if(parentUser) {
                     if(!parentUser.referralsList) parentUser.referralsList = [];
                     parentUser.referralsList.push({ refereeId: newUser.id, refereeName: newUser.username, status: 'inactive' });
                 }
             }
 
-            db.users.push(newUser);
-            saveDB(db);
+            appStateMemory.users.push(newUser);
+            await pushCloudDB();
             currentUserId = newUser.id;
             document.getElementById('regForm').reset();
+            showLoader(false);
             switchScreen('screen-earn');
         });
 
-        document.getElementById('logForm').addEventListener('submit', (e) => {
+        document.getElementById('logForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            let db = getDB();
-            const user = db.users.find(u => u.email === document.getElementById('log-email').value && u.password === document.getElementById('log-pass').value);
+
+            // Validate Captcha
+            const captchaInput = parseInt(document.getElementById('log-captcha-input').value);
+            if(captchaInput !== currentLogCaptchaAnswer) {
+                showAppToast("Wrong Captcha! Try again.");
+                generateCaptcha('log');
+                return;
+            }
+
+            showLoader(true);
+            await pullCloudDB();
+
+            const targetEmail = document.getElementById('log-email').value.trim().toLowerCase();
+            const targetPass = document.getElementById('log-pass').value;
+
+            const user = appStateMemory.users.find(u => u.email.toLowerCase() === targetEmail && u.password === targetPass);
+            showLoader(false);
+            
             if (!user) return showAppToast("Invalid operational access key map.");
+            
             currentUserId = user.id;
             document.getElementById('logForm').reset();
             switchScreen('screen-earn');
@@ -744,10 +899,11 @@
             }
         });
 
-        document.getElementById('cashForm').addEventListener('submit', (e) => {
+        document.getElementById('cashForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            let db = getDB();
-            let user = db.users.find(u => u.id === currentUserId);
+            await pullCloudDB();
+            
+            let user = appStateMemory.users.find(u => u.id === currentUserId);
             const targetPointsToWithdraw = parseInt(document.getElementById('withdraw-points-amount').value);
             
             if (user) {
@@ -772,7 +928,7 @@
                 if(!user.withdraws) user.withdraws = [];
                 user.withdraws.push(payoutPayload);
                 
-                saveDB(db);
+                await pushCloudDB();
                 document.getElementById('withdraw-points-amount').value = '';
                 document.getElementById('withdraw-address').value = '';
                 document.getElementById('live-ratio-calculator-badge').style.display = 'none';
@@ -782,8 +938,7 @@
         });
 
         function renderNotificationScreenData() {
-            let db = getDB();
-            let user = db.users.find(u => u.id === currentUserId);
+            let user = appStateMemory.users.find(u => u.id === currentUserId);
             const container = document.getElementById('user-notifications-list-container');
             const now = Date.now();
             let changed = false;
@@ -791,18 +946,18 @@
             if (!user) return;
 
             let systemNotificationsArray = [];
-            if(db.globalNotifications) systemNotificationsArray = db.globalNotifications.map(n => ({...n, type: 'global'}));
+            if(appStateMemory.globalNotifications) systemNotificationsArray = appStateMemory.globalNotifications.map(n => ({...n, type: 'global'}));
             if(user.notifications) systemNotificationsArray = [...systemNotificationsArray, ...user.notifications.map(n => ({...n, type: 'personal'}))];
             
             systemNotificationsArray.sort((a,b) => b.id - a.id);
 
-            if(db.globalNotifications) {
-                db.globalNotifications.forEach(n => { if (!n.checkedAt) { n.checkedAt = now; changed = true; } });
+            if(appStateMemory.globalNotifications) {
+                appStateMemory.globalNotifications.forEach(n => { if (!n.checkedAt) { n.checkedAt = now; changed = true; } });
             }
             if(user.notifications) {
                 user.notifications.forEach(n => { if (!n.checkedAt) { n.checkedAt = now; changed = true; } });
             }
-            if (changed) saveDB(db);
+            if (changed) pushCloudDB();
 
             container.innerHTML = systemNotificationsArray.map(n => {
                 const elapsedSeconds = Math.floor((now - (n.checkedAt || now)) / 1000);
@@ -822,25 +977,31 @@
         }
 
         function updateGlobalUserViews() {
-            let db = getDB();
-            let user = db.users.find(u => u.id === currentUserId);
+            let user = appStateMemory.users.find(u => u.id === currentUserId);
             if (user) {
                 document.querySelectorAll('.user-pts-display').forEach(el => el.innerText = user.points + " Pts");
-                document.getElementById('prof-user-lbl').innerText = user.username;
+                
+                // Set Advanced Profile Values
+                document.getElementById('prof-fullname-lbl').innerText = `${user.firstName || ''} ${user.lastName || ''}`;
+                document.getElementById('prof-user-lbl').innerText = "@" + user.username;
                 document.getElementById('prof-email-lbl').innerText = user.email;
                 document.getElementById('prof-ads-lbl').innerText = user.adsWatched || 0;
                 document.getElementById('prof-join-date-lbl').innerText = user.joinDate || "N/A";
                 document.getElementById('user-refer-code-lbl').innerText = user.username;
                 document.getElementById('user-ref-count').innerText = user.referralsList ? user.referralsList.length : 0;
                 document.getElementById('user-ref-earning').innerText = (user.referralEarnings || 0) + " Pts";
+                
+                if(user.avatar) {
+                    document.getElementById('prof-avatar-display').src = user.avatar;
+                }
 
                 let hasUncheckedNotice = false;
-                if(db.globalNotifications && db.globalNotifications.some(n => !n.checkedAt)) hasUncheckedNotice = true;
+                if(appStateMemory.globalNotifications && appStateMemory.globalNotifications.some(n => !n.checkedAt)) hasUncheckedNotice = true;
                 if(user.notifications && user.notifications.some(n => !n.checkedAt)) hasUncheckedNotice = true;
                 document.getElementById('app-bell-badge').style.display = hasUncheckedNotice ? 'block' : 'none';
 
                 document.getElementById('user-ref-list-rows').innerHTML = (user.referralsList || []).map(r => {
-                    let match = db.users.find(u => u.id === r.refereeId);
+                    let match = appStateMemory.users.find(u => u.id === r.refereeId);
                     return `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1e293b;">
                         <div><strong>${r.refereeName}</strong><br><small style="color:#64748b;">Ads Logged: ${match?(match.adsWatched||0):0}/100</small></div>
                         <div><span class="badge-status status-${r.status}">${r.status}</span></div>
@@ -875,8 +1036,7 @@
             document.getElementById('admin-msg-target-user').style.display = (val === 'single') ? 'block' : 'none';
         }
 
-        function dispatchAdminNotification() {
-            let db = getDB();
+        async function dispatchAdminNotification() {
             const type = document.getElementById('admin-msg-target-type').value;
             const targetUser = document.getElementById('admin-msg-target-user').value.trim();
             const messageBody = document.getElementById('admin-custom-msg-body').value.trim();
@@ -885,35 +1045,34 @@
             const payloadNode = { id: Date.now(), msg: messageBody, checkedAt: null };
 
             if(type === 'all') {
-                if(!db.globalNotifications) db.globalNotifications = [];
-                db.globalNotifications.push(payloadNode);
+                if(!appStateMemory.globalNotifications) appStateMemory.globalNotifications = [];
+                appStateMemory.globalNotifications.push(payloadNode);
                 showAppToast("Global notification dispatched.");
             } else {
-                let match = db.users.find(u => u.username.toLowerCase() === targetUser.toLowerCase());
+                let match = appStateMemory.users.find(u => u.username.toLowerCase() === targetUser.toLowerCase());
                 if(!match) return showAppToast("Target profile user mapping error!");
                 if(!match.notifications) match.notifications = [];
                 match.notifications.push(payloadNode);
                 showAppToast(`Direct notification routed to ${match.username}`);
             }
-            saveDB(db);
+            await pushCloudDB();
             document.getElementById('admin-custom-msg-body').value = '';
         }
 
         function updateAdminView() {
-            let db = getDB();
-            document.getElementById('admin-clicks-lbl').innerText = db.globalClicks || 0;
-            document.getElementById('admin-users-lbl').innerText = db.users.length || 0;
+            document.getElementById('admin-clicks-lbl').innerText = appStateMemory.globalClicks || 0;
+            document.getElementById('admin-users-lbl').innerText = appStateMemory.users.length || 0;
             const searchVal = document.getElementById('admin-search-box').value.toLowerCase();
 
             let pendingPayoutsHTML = "";
-            db.users.forEach(u => {
+            appStateMemory.users.forEach(u => {
                 if(u.withdraws && u.withdraws.length > 0) {
                     u.withdraws.forEach(w => {
                         if(w.status === 'pending') {
                             pendingPayoutsHTML += `
                             <div style="background:#0c1222; padding:10px; border-radius:10px; border:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
                                 <div style="flex:1;">
-                                    <strong>${u.username}</strong> (${w.method})<br>
+                                    <strong>${u.firstName || ''} ${u.lastName || u.username}</strong> (@${u.username}) [${w.method}]<br>
                                     <span style="color:#10b981; font-weight:700;">Amt: ${w.points} Pts (${w.cashAmount || (w.points/250).toFixed(0)}৳)</span><br>
                                     <small style="color:#64748b;">Wallet: ${w.address}</small>
                                 </div>
@@ -929,9 +1088,9 @@
             document.getElementById('admin-pending-payouts-list').innerHTML = pendingPayoutsHTML || "<span>No pending settlements.</span>";
 
             const dataBody = document.getElementById('admin-data-rows');
-            dataBody.innerHTML = db.users.filter(u => u.username.toLowerCase().includes(searchVal)).map(u => `
+            dataBody.innerHTML = appStateMemory.users.filter(u => u.username.toLowerCase().includes(searchVal) || (u.firstName && u.firstName.toLowerCase().includes(searchVal))).map(u => `
                 <tr>
-                    <td><strong>${u.username}</strong><br><small style="color:#64748b;">Ads: ${u.adsWatched || 0}</small></td>
+                    <td><strong>${u.firstName || ''} ${u.lastName || u.username}</strong><br><small style="color:#64748b;">@${u.username} • Ads: ${u.adsWatched || 0}</small></td>
                     <td>
                         <input type="number" style="width:70px; padding:4px; margin:0; display:inline-block;" id="adm-p-${u.id}" value="${u.points}">
                         <button onclick="saveUserPoints(${u.id})" style="padding:4px 8px; background:#38bdf8; border:none; color:#000; font-weight:700; border-radius:4px;">Save</button>
@@ -958,21 +1117,19 @@
             document.getElementById('admin-trx-input-panel').style.display = 'none';
         };
 
-        window.saveUserPoints = function(uid) {
-            let db = getDB();
-            let user = db.users.find(u => u.id === uid);
+        window.saveUserPoints = async function(uid) {
+            let user = appStateMemory.users.find(u => u.id === uid);
             const inputVal = document.getElementById(`adm-p-${uid}`).value;
             if(user) {
                 user.points = parseInt(inputVal) || 0;
-                saveDB(db);
+                await pushCloudDB();
                 showAppToast("User credit modified.");
                 updateAdminView();
             }
         };
 
-        window.resolveTransaction = function(uid, wid, state, customTrxStr) {
-            let db = getDB();
-            let user = db.users.find(u => u.id === uid);
+        window.resolveTransaction = async function(uid, wid, state, customTrxStr) {
+            let user = appStateMemory.users.find(u => u.id === uid);
             if(user) {
                 let tx = user.withdraws.find(w => w.id === wid);
                 if(tx) {
@@ -987,7 +1144,7 @@
                         checkedAt: null 
                     });
 
-                    saveDB(db);
+                    await pushCloudDB();
                     showAppToast(`Transaction updated.`);
                     updateAdminView();
                 }
@@ -997,13 +1154,19 @@
         window.logout = function() {
             if(adActiveSession) return showAppToast("Conclude open session parameters.");
             currentUserId = null;
+            stopAdminRealtimeEngine();
             switchScreen('screen-login');
         };
 
-        // First banner initializing render setup
-        window.onload = function() {
+        window.onload = async function() {
+            showLoader(true);
+            await pullCloudDB();
+            showLoader(false);
+            
+            generateCaptcha('reg');
+            generateCaptcha('log');
             reloadAdBanners();
         };
     </script>
 </body>
-                                                                                  </html>
+    </html>
